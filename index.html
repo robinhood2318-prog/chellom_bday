@@ -516,6 +516,233 @@
   }
 
 </style>
+
+<style>
+/* ==================================================================
+   ACT 2 — the arcade. Everything here is prefixed ar- so it cannot
+   collide with the cake page's own rules.
+================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+:root{
+  --ar-px:"Press Start 2P","Courier New",monospace;
+  --ar-neonY:#F5D547;
+  --ar-neonG:#5BD06A;
+  --ar-neonC:#45D7E8;
+  --ar-neonM:#F24B6A;
+  --ar-dim:#9A8FC4;
+}
+
+/* ---- the bridge between the two acts ---- */
+.ar-bridge{
+  position:fixed; left:50%; bottom:22px; z-index:60;
+  transform:translateX(-50%);
+  opacity:0; pointer-events:none;
+  transition:opacity .6s ease;
+}
+.ar-bridge.show{ opacity:1; pointer-events:auto; }
+.ar-bridge[hidden]{ display:none !important; }
+.ar-bridge button{
+  appearance:none; cursor:pointer;
+  font-family:"Baloo 2","Quicksand",sans-serif;
+  font-weight:800; font-size:1.02rem;
+  color:#2B1240;
+  background:linear-gradient(178deg,#FFE79A,#F4B740 60%,#E09A20);
+  border:2px solid rgba(43,18,64,.5);
+  border-radius:999px;
+  padding:14px 26px;
+  box-shadow:0 8px 0 rgba(90,40,120,.45), 0 16px 30px -12px rgba(20,8,36,.8);
+  animation:arNudge 2.4s ease-in-out infinite;
+}
+.ar-bridge button:active{ transform:translateY(5px); box-shadow:0 3px 0 rgba(90,40,120,.45); }
+.ar-bridge button:focus-visible{ outline:3px solid #FFD873; outline-offset:3px; }
+@keyframes arNudge{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
+
+/* ---- act transition ---- */
+main{ transition:opacity .45s ease; }
+body.ar-leaving main{ opacity:0; }
+body.ar-mode main{ display:none; }
+body.ar-mode .balloons,
+body.ar-mode #confetti-canvas,
+body.ar-mode .photo-field{ opacity:0 !important; pointer-events:none; transition:opacity .5s ease; }
+body.ar-mode .sky{ filter:brightness(.42) saturate(.75); transition:filter .6s ease; }
+body.ar-mode .lightbox{ display:none !important; }
+
+/* ---- act 2 shell ---- */
+.ar-act{
+  position:relative; z-index:20;
+  max-width:560px; margin:0 auto;
+  padding-inline:18px;
+  padding-block:clamp(22px,5vw,44px) 40px;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  animation:arRise .55s cubic-bezier(.2,.8,.3,1) both;
+}
+.ar-act[hidden]{ display:none !important; }
+@keyframes arRise{ from{opacity:0; transform:translateY(26px);} to{opacity:1; transform:none;} }
+
+.ar-marquee{ text-align:center; display:flex; flex-direction:column; gap:9px; }
+.ar-marquee h2{
+  margin:0; font-family:var(--ar-px);
+  font-size:clamp(.92rem,4vw,1.34rem); line-height:1.5;
+  color:var(--ar-neonY);
+  text-shadow:0 0 12px rgba(245,213,71,.55), 3px 3px 0 #B23FA8;
+}
+.ar-marquee p{
+  margin:0; font-family:var(--ar-px);
+  font-size:clamp(.44rem,1.9vw,.54rem); line-height:1.9;
+  color:#D9C9F2;
+}
+
+/* the cabinet wears the birthday palette; the screen stays a CRT */
+.ar-cab{
+  width:100%;
+  background:linear-gradient(178deg,#8E5FD6 0%,#6A3FB0 42%,#3A1C68 100%);
+  border:2px solid #B98BEE;
+  border-radius:14px;
+  padding:12px;
+  box-shadow:0 28px 46px -30px rgba(12,4,26,.95), inset 0 2px 0 rgba(255,255,255,.22);
+}
+.ar-bezel{
+  background:#25104A; border-radius:9px; padding:10px;
+  box-shadow:inset 0 0 0 2px #160830, inset 0 4px 14px rgba(0,0,0,.7);
+}
+.ar-screen{
+  position:relative; width:100%; aspect-ratio:160/144;
+  background:#05050D; border-radius:4px; overflow:hidden;
+  box-shadow:0 0 26px rgba(124,92,224,.3), inset 0 0 40px rgba(0,0,0,.75);
+}
+
+.ar-mosaic{
+  position:absolute; left:0; right:0; bottom:0; top:9.03%; z-index:1;
+  display:grid; grid-template-columns:repeat(5,1fr); grid-template-rows:repeat(4,1fr);
+  gap:1px; background:#05050D;
+}
+.ar-tile{ position:relative; overflow:hidden; background:#1A1030; box-shadow:inset 0 0 0 1px #2C1A52; }
+.ar-tile::after{
+  content:""; position:absolute; left:50%; top:50%;
+  width:26%; height:26%; margin:-13% 0 0 -13%;
+  box-shadow:inset 0 0 0 2px #3A2270; transition:opacity .3s ease;
+}
+.ar-tile img{ display:block; width:100%; height:100%; object-fit:cover; opacity:0; transform:scale(.35); }
+.ar-tile.on::after{ opacity:0; }
+.ar-tile.on img{ opacity:1; transform:scale(1); animation:arPop .4s cubic-bezier(.2,1.3,.4,1) both; }
+@keyframes arPop{
+  0%{opacity:0; transform:scale(.3); filter:brightness(3.2);}
+  55%{opacity:1; filter:brightness(1.7);}
+  100%{opacity:1; transform:scale(1); filter:brightness(1);}
+}
+
+#arGame{
+  position:absolute; inset:0; z-index:2; width:100%; height:100%;
+  image-rendering:pixelated; image-rendering:crisp-edges; display:block;
+}
+.ar-screen.shake #arGame{ animation:arShake .22s steps(4); }
+@keyframes arShake{
+  0%{transform:translate(0,0);} 25%{transform:translate(-2%,1%);}
+  50%{transform:translate(2%,-1%);} 75%{transform:translate(-1%,-1%);}
+  100%{transform:translate(0,0);}
+}
+.ar-crt{
+  position:absolute; inset:0; pointer-events:none; z-index:8;
+  background:
+    repeating-linear-gradient(180deg, rgba(0,0,0,.26) 0 1px, rgba(0,0,0,0) 1px 3px),
+    radial-gradient(ellipse 84% 76% at 50% 50%, transparent 52%, rgba(0,0,0,.6) 100%);
+}
+
+.ar-ov{
+  position:absolute; inset:0; z-index:6; background:#0B0620;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:clamp(8px,2.4vw,14px); padding:clamp(12px,4vw,22px); text-align:center;
+  font-family:var(--ar-px);
+}
+.ar-ov[hidden]{ display:none !important; }
+.ar-ov h3{ margin:0; font-size:clamp(.76rem,3.5vw,1.06rem); line-height:1.5; }
+.ar-ov p{ margin:0; font-size:clamp(.43rem,1.95vw,.55rem); line-height:2.1; color:var(--ar-dim); max-width:34ch; }
+.ar-ov .lead{ color:#F6F0FF; }
+.ar-blink{ animation:arBlink 1.05s steps(2) infinite; color:var(--ar-neonC); }
+@keyframes arBlink{ 50%{opacity:.15;} }
+#arTitle h3{ color:var(--ar-neonY); text-shadow:3px 3px 0 #B23FA8; }
+#arOver h3{ color:var(--ar-neonM); }
+
+.ar-legend{
+  display:flex; flex-wrap:wrap; justify-content:center; gap:6px 16px;
+  font-size:clamp(.4rem,1.8vw,.5rem); line-height:1.8; color:var(--ar-dim);
+}
+.ar-legend .g{ color:var(--ar-neonG); }
+.ar-legend .r{ color:var(--ar-neonM); }
+
+.ar-clearbar{
+  position:absolute; left:0; right:0; top:9.03%; z-index:7;
+  padding:10px 8px 14px; text-align:center; font-family:var(--ar-px);
+  background:linear-gradient(180deg, rgba(11,6,32,.94) 0%, rgba(11,6,32,.78) 62%, rgba(11,6,32,0) 100%);
+  animation:arDrop .5s ease-out both;
+}
+.ar-clearbar[hidden]{ display:none !important; }
+.ar-clearbar h3{
+  margin:0; font-size:clamp(.76rem,3.5vw,1.06rem); color:var(--ar-neonG);
+  text-shadow:0 0 12px rgba(91,208,106,.5), 2px 2px 0 rgba(11,6,32,.9);
+}
+@keyframes arDrop{ from{opacity:0; transform:translateY(-14px);} to{opacity:1; transform:none;} }
+
+.ar-winbar{
+  position:absolute; left:0; right:0; bottom:0; z-index:7;
+  padding:26px 14px 12px; text-align:center; font-family:var(--ar-px);
+  display:flex; flex-direction:column; align-items:center; gap:9px;
+  background:linear-gradient(180deg, rgba(11,6,32,0) 0%, rgba(11,6,32,.9) 26%, rgba(11,6,32,.97) 100%);
+  animation:arRiseBar .5s ease-out both; animation-delay:.25s;
+}
+.ar-winbar[hidden]{ display:none !important; }
+@keyframes arRiseBar{ from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:none;} }
+.ar-winbar .wish{ margin:0; font-size:clamp(.42rem,1.85vw,.52rem); line-height:2.2; color:#F6F0FF; max-width:38ch; }
+.ar-winbar .sig{ color:var(--ar-neonY); }
+.ar-winbar .again{ margin:0; font-size:clamp(.4rem,1.8vw,.5rem); line-height:1.8; }
+
+.ar-peek{
+  position:absolute; right:6px; top:6px; z-index:9;
+  appearance:none; cursor:pointer; font-family:var(--ar-px);
+  font-size:clamp(.36rem,1.6vw,.44rem); color:#F6F0FF;
+  background:rgba(11,6,32,.82); border:1px solid #6A3FB0;
+  border-radius:4px; padding:7px 8px; min-height:30px;
+}
+.ar-peek[hidden]{ display:none !important; }
+
+.ar-pad{ width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.ar-dpad{ display:flex; gap:8px; }
+.ar-btn{
+  appearance:none; cursor:pointer; font-family:var(--ar-px);
+  font-size:clamp(.46rem,2vw,.58rem); line-height:1; color:#F6F0FF;
+  background:linear-gradient(178deg,#7C5CE0,#4B2A8E);
+  border:2px solid #A07FE8; border-radius:6px;
+  padding:14px 16px; min-width:52px; min-height:46px;
+  box-shadow:0 4px 0 #2A1258;
+  transition:transform .06s, box-shadow .06s;
+  touch-action:manipulation;
+}
+.ar-btn:active{ transform:translateY(4px); box-shadow:0 0 0 #2A1258; }
+.ar-btn:focus-visible{ outline:2px solid var(--ar-neonY); outline-offset:3px; }
+.ar-btn.go{
+  background:linear-gradient(178deg,#F4B740,#D9721A);
+  border-color:#FFD873; box-shadow:0 4px 0 #8E4310; color:#2B1240;
+  flex:1; min-width:140px;
+}
+.ar-btn.small{ padding:11px 12px; min-height:40px; }
+
+.ar-back{
+  appearance:none; cursor:pointer;
+  font-family:"Quicksand",sans-serif; font-weight:700; font-size:.88rem;
+  color:#E7DAFF; background:none; border:0; padding:8px 4px;
+  text-decoration:underline; text-underline-offset:4px;
+}
+.ar-foot{ margin:0; text-align:center; font-family:var(--ar-px);
+  font-size:clamp(.38rem,1.7vw,.48rem); line-height:2; color:var(--ar-dim); }
+
+@media (prefers-reduced-motion: reduce){
+  .ar-blink, .ar-bridge button, .ar-act, .ar-clearbar, .ar-winbar{ animation:none; }
+  .ar-tile.on img{ animation:none; }
+  .ar-screen.shake #arGame{ animation:none; }
+}
+</style>
+
 </head>
 <body>
 
@@ -1565,6 +1792,454 @@ var PHOTOS = ["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAwICQsJCA
       if (e.key === "ArrowLeft"){ stopSlideshow(); current = (current-1+PHOTOS.length)%PHOTOS.length; renderSlide(); if(playing) startSlideshow(); }
     });
   })();
+
+})();
+</script>
+
+
+<!-- ======================= bridge + ACT 2 ======================= -->
+<div class="ar-bridge" id="arBridge" hidden>
+  <button type="button" id="arBridgeBtn">&#127918; one more thing &rarr;</button>
+</div>
+
+<section class="ar-act" id="arAct" hidden>
+
+  <div class="ar-marquee">
+    <h2>GIFT CATCHER 27</h2>
+    <p>CATCH THE GIFTS &middot; DODGE THE CANDLES</p>
+  </div>
+
+  <div class="ar-cab">
+    <div class="ar-bezel">
+      <div class="ar-screen" id="arScreen">
+
+        <div class="ar-mosaic" id="arMosaic" aria-hidden="true"></div>
+        <canvas id="arGame" width="160" height="144" aria-label="Gift catching game"></canvas>
+        <div class="ar-crt" aria-hidden="true"></div>
+
+        <section class="ar-ov" id="arTitle">
+          <h3>GIFT<br>CATCHER 27</h3>
+          <div class="ar-legend">
+            <span class="g">&#9632; GIFT = CATCH</span>
+            <span class="r">&#9632; CANDLE = DODGE</span>
+          </div>
+          <p>EVERY GIFT UNCOVERS<br>ONE PHOTO BEHIND<br>THE SCREEN</p>
+          <p>CATCH ALL <b>20</b> WITH <b>3</b> LIVES</p>
+          <p class="ar-blink">PRESS START</p>
+        </section>
+
+        <section class="ar-ov" id="arOver" hidden>
+          <h3>GAME OVER</h3>
+          <p class="lead" id="arOverStat">YOU UNCOVERED 0 OF 20</p>
+          <p>SHE WOULD HAVE<br>GOT THEM ALL</p>
+          <p class="ar-blink">PRESS START TO RETRY</p>
+        </section>
+
+        <div class="ar-clearbar" id="arClearBar" hidden><h3>STAGE CLEAR</h3></div>
+        <div class="ar-winbar" id="arWinBar" hidden>
+          <p class="wish">
+            HAPPY BIRTHDAY SHILPA.<br>
+            TWENTY-SEVEN LOOKS GOOD ON YOU.<br>
+            THANK YOU FOR ALL TWENTY OF THESE<br>
+            AND EVERY ONE THAT DIDN'T FIT.<br>
+            <span class="sig">&mdash; CUTIE PIE OF MANGALAGIRI</span>
+          </p>
+          <p class="again ar-blink">PRESS START TO PLAY AGAIN</p>
+        </div>
+        <button class="ar-peek" id="arPeek" type="button" hidden>HIDE TEXT</button>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="ar-pad">
+    <div class="ar-dpad">
+      <button class="ar-btn" id="arLeft" type="button" aria-label="Move left">&#9664;</button>
+      <button class="ar-btn" id="arRight" type="button" aria-label="Move right">&#9654;</button>
+    </div>
+    <button class="ar-btn go" id="arStart" type="button">START</button>
+    <button class="ar-btn small" id="arSound" type="button" aria-pressed="true">SND ON</button>
+  </div>
+
+  <p class="ar-foot">ARROW KEYS OR A / D &middot; SPACE TO START</p>
+  <button class="ar-back" id="arBack" type="button">&larr; back to the cake</button>
+</section>
+
+<script>
+(function(){
+  "use strict";
+
+  var W = 160, H = 144, HUD = 13;
+  var COLS = 5, ROWS = 4, TARGET = COLS * ROWS, LIVES = 3;
+
+  var cv = document.getElementById("arGame");
+  var ctx = cv.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+
+  var actEl    = document.getElementById("arAct");
+  var bridgeEl = document.getElementById("arBridge");
+  var screenEl = document.getElementById("arScreen");
+  var mosaicEl = document.getElementById("arMosaic");
+  var titleEl  = document.getElementById("arTitle");
+  var overEl   = document.getElementById("arOver");
+  var clearBar = document.getElementById("arClearBar");
+  var winBar   = document.getElementById("arWinBar");
+  var peekBtn  = document.getElementById("arPeek");
+  var overStat = document.getElementById("arOverStat");
+
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* the cake page already holds every photo as a global; share it
+     rather than embedding a second megabyte of the same pictures */
+  var SHOTS = [];
+  (function(){
+    var all = (typeof PHOTOS !== "undefined" && PHOTOS.length) ? PHOTOS : [];
+    if (!all.length) return;
+    for (var i = 0; i < TARGET; i++){
+      SHOTS.push(all[Math.round(i * (all.length - 1) / (TARGET - 1))]);
+    }
+  })();
+
+  var C = {
+    ".":null, K:"#2B1B3A", S:"#E8B48A", E:"#1A1024", W:"#F2F0E6", M:"#B84A5A",
+    P:"#F24B6A", A:"#E8B48A", B:"#7A4A22", Y:"#C98A3E",
+    G:"#5BD06A", R:"#F5D547", F:"#F28E2B", C:"#45D7E8", H:"#F24B6A"
+  };
+
+  var PLAYER = [
+    "....BBBBBBBB....","...BYYYYYYYYB...","...BYYYYYYYYB...","...BBBBBBBBBB...",
+    "......KKKK......",".....KKKKKK.....",".....KSSSSK.....",".....SEWWES.....",
+    ".....SSSSSS.....","......SMMS......",".....PPPPPP.....",
+    "...APPPPPPPPA...","...APPPPPPPPA...",".....PPPPPP.....",".....P....P.....",".....P....P....."
+  ];
+  var GIFT = [
+    "...R..R...","..RRRRRR..",".GGGGGGGG.",".GGGRRGGG.",".GGGRRGGG.",
+    ".GGGGGGGG.",".GGGRRGGG.",".GGGRRGGG.",".GGGGGGGG.",".........."
+  ];
+  var CANDLE = [
+    "...FF...","..FFFF..","...FF...","...WW...","..CCCC..","..CCCC..",
+    "..CCCC..","..CCCC..","..CCCC..","..CCCC..",".CCCCCC.","........"
+  ];
+  var HEART = [".HH.HH.","HHHHHHH","HHHHHHH",".HHHHH.","..HHH..","...H..."];
+
+  var DIGITS = {
+    "0":["###","#.#","#.#","#.#","###"],"1":[".#.","##.",".#.",".#.","###"],
+    "2":["###","..#","###","#..","###"],"3":["###","..#","###","..#","###"],
+    "4":["#.#","#.#","###","..#","..#"],"5":["###","#..","###","..#","###"],
+    "6":["###","#..","###","#.#","###"],"7":["###","..#","..#","..#","..#"],
+    "8":["###","#.#","###","#.#","###"],"9":["###","#.#","###","..#","###"],
+    "/":["..#","..#",".#.","#..","#.."]
+  };
+
+  function blit(sp, x, y, tint){
+    for (var r = 0; r < sp.length; r++){
+      var row = sp[r];
+      for (var c = 0; c < row.length; c++){
+        var col = tint || C[row[c]];
+        if (!col) continue;
+        ctx.fillStyle = col;
+        ctx.fillRect((x + c) | 0, (y + r) | 0, 1, 1);
+      }
+    }
+  }
+  function blitOutlined(sp, x, y){
+    blit(sp, x - 1, y, "#0B0620"); blit(sp, x + 1, y, "#0B0620");
+    blit(sp, x, y - 1, "#0B0620"); blit(sp, x, y + 1, "#0B0620");
+    blit(sp, x, y);
+  }
+  function text(str, x, y, color){
+    ctx.fillStyle = color; var cx = x;
+    for (var i = 0; i < str.length; i++){
+      var g = DIGITS[str[i]];
+      if (g) for (var r = 0; r < 5; r++) for (var c = 0; c < 3; c++)
+        if (g[r][c] === "#") ctx.fillRect(cx + c, y + r, 1, 1);
+      cx += 4;
+    }
+  }
+  function pad2(n){ return (n < 10 ? "0" : "") + n; }
+
+  var actx = null, soundOn = true;
+  function beep(freq, dur, type, vol){
+    if (!soundOn) return;
+    try{
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || "square"; o.frequency.value = freq;
+      g.gain.value = vol == null ? 0.05 : vol;
+      o.connect(g); g.connect(actx.destination); o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+      o.stop(actx.currentTime + dur);
+    }catch(err){}
+  }
+  function fanfare(){
+    if (!soundOn) return;
+    [523,659,784,1047,1319].forEach(function(f,i){
+      setTimeout(function(){ beep(f,0.2,"square",0.06); }, i*140);
+    });
+  }
+
+  var tiles = [];
+  (function(){
+    for (var i = 0; i < TARGET; i++){
+      var t = document.createElement("div");
+      t.className = "ar-tile";
+      if (SHOTS.length){
+        var im = document.createElement("img");
+        im.src = SHOTS[i]; im.alt = ""; im.draggable = false;
+        t.appendChild(im);
+      }
+      mosaicEl.appendChild(t); tiles.push(t);
+    }
+  })();
+  function coverAll(){ tiles.forEach(function(t){ t.classList.remove("on"); }); }
+
+  var state = "title", active = false;
+  var px, lives, caught, items, frame, spawnIn, stars, order, scrim, scrimTo;
+  var lastBad, runLen, lastX;
+
+  function shuffled(n){
+    var a = []; for (var i = 0; i < n; i++) a.push(i);
+    for (var j = a.length - 1; j > 0; j--){
+      var k = (Math.random()*(j+1))|0; var t = a[j]; a[j] = a[k]; a[k] = t;
+    }
+    return a;
+  }
+  function reset(){
+    px = W/2 - 8; lives = LIVES; caught = 0; items = []; stars = [];
+    frame = 0; spawnIn = 46;
+    lastBad = false; runLen = 0; lastX = W/2;
+    order = shuffled(TARGET);
+    scrim = 0.56; scrimTo = 0.56;
+    coverAll();
+  }
+  reset();
+
+  var left = false, right = false;
+  function key(e, down){
+    if (!active) return;
+    var k = e.key;
+    if (k === "ArrowLeft" || k === "a" || k === "A"){ left = down; e.preventDefault(); }
+    if (k === "ArrowRight" || k === "d" || k === "D"){ right = down; e.preventDefault(); }
+    if (down && (k === " " || k === "Enter")){
+      if (e.target && e.target.tagName === "BUTTON") return;
+      if (state !== "play"){ e.preventDefault(); start(); }
+    }
+  }
+  document.addEventListener("keydown", function(e){ key(e, true); });
+  document.addEventListener("keyup",   function(e){ key(e, false); });
+
+  function hold(btn, set){
+    ["pointerdown","pointerenter"].forEach(function(t){
+      btn.addEventListener(t, function(e){ if (e.buttons || e.type === "pointerdown") set(true); });
+    });
+    ["pointerup","pointerleave","pointercancel"].forEach(function(t){
+      btn.addEventListener(t, function(){ set(false); });
+    });
+    btn.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+  }
+  hold(document.getElementById("arLeft"),  function(v){ left = v; });
+  hold(document.getElementById("arRight"), function(v){ right = v; });
+
+  screenEl.addEventListener("pointerdown", track);
+  screenEl.addEventListener("pointermove", function(e){ if (e.buttons) track(e); });
+  function track(e){
+    if (state !== "play") return;
+    if (e.target === peekBtn) return;
+    var r = cv.getBoundingClientRect();
+    px = ((e.clientX - r.left) / r.width) * W - 8;
+    clampP(); e.preventDefault();
+  }
+  function clampP(){ px = Math.max(0, Math.min(W - 16, px)); }
+
+  document.getElementById("arStart").addEventListener("click", function(){
+    if (state !== "play") start();
+  });
+  var sndBtn = document.getElementById("arSound");
+  sndBtn.addEventListener("click", function(){
+    soundOn = !soundOn;
+    sndBtn.textContent = soundOn ? "SND ON" : "SND OFF";
+    sndBtn.setAttribute("aria-pressed", soundOn ? "true" : "false");
+  });
+
+  var textHidden = false;
+  peekBtn.addEventListener("click", function(){
+    textHidden = !textHidden;
+    clearBar.hidden = textHidden; winBar.hidden = textHidden;
+    peekBtn.textContent = textHidden ? "SHOW TEXT" : "HIDE TEXT";
+  });
+
+  function hideAll(){
+    titleEl.hidden = true; overEl.hidden = true;
+    clearBar.hidden = true; winBar.hidden = true; peekBtn.hidden = true;
+  }
+  function start(){
+    reset(); hideAll(); textHidden = false;
+    peekBtn.textContent = "HIDE TEXT";
+    state = "play"; beep(660, 0.09);
+  }
+  function lose(){
+    state = "over";
+    overStat.textContent = "YOU UNCOVERED " + caught + " OF " + TARGET;
+    hideAll(); overEl.hidden = false;
+    beep(160, 0.4, "sawtooth", 0.05);
+  }
+  function win(){
+    state = "clearing"; items = []; scrimTo = 0; fanfare();
+    setTimeout(function(){
+      if (state !== "clearing") return;
+      state = "win";
+      clearBar.hidden = false; winBar.hidden = false; peekBtn.hidden = false;
+    }, reduce ? 300 : 1500);
+  }
+  function shake(){
+    if (reduce) return;
+    screenEl.classList.remove("shake"); void screenEl.offsetWidth;
+    screenEl.classList.add("shake");
+  }
+
+  function update(){
+    frame++;
+    if (left)  px -= 2.2;
+    if (right) px += 2.2;
+    clampP();
+
+    var ramp   = frame * 0.00050;
+    var fall   = Math.min(3.00, 0.85 + ramp);
+    var every  = Math.max(18, Math.round(46 - frame * 0.0055));
+    var hazard = Math.min(0.46, 0.30 + frame * 0.000040);
+
+    if (--spawnIn <= 0){
+      spawnIn = every + ((Math.random() * 10) | 0);
+      var bad = Math.random() < hazard;
+      if (bad && lastBad) bad = false;
+      else if (!bad && !lastBad && runLen >= 3) bad = true;
+      runLen = (bad === lastBad) ? runLen + 1 : 1;
+      lastBad = bad;
+
+      var span = W - (bad ? 12 : 14);
+      var nx = 4 + Math.random() * span;
+      for (var a = 0; a < 6 && Math.abs(nx - lastX) < 38; a++) nx = 4 + Math.random() * span;
+      lastX = nx;
+
+      items.push({ bad:bad, x:nx, y:-14, v:fall + Math.random() * 0.14 });
+    }
+
+    var basket = { x:px + 3, y:H - 16, w:10, h:5 };
+    for (var i = items.length - 1; i >= 0; i--){
+      var it = items[i];
+      it.y += it.v;
+      var iw = it.bad ? 8 : 10, ih = it.bad ? 12 : 10;
+      var hitX = it.x + iw > basket.x && it.x < basket.x + basket.w;
+      var hitY = it.y + ih > basket.y && it.y < basket.y + basket.h + 6;
+      if (hitX && hitY){
+        items.splice(i, 1);
+        if (it.bad){
+          lives--; shake(); beep(120, 0.22, "sawtooth", 0.06);
+          if (lives <= 0){ lose(); return; }
+        } else {
+          if (tiles[order[caught]]) tiles[order[caught]].classList.add("on");
+          caught++;
+          for (var s = 0; s < 6; s++)
+            stars.push({ x:it.x+5, y:it.y+5, vx:(Math.random()-0.5)*1.8, vy:-Math.random()*1.4, life:18 });
+          beep(700 + caught * 16, 0.07);
+          if (caught >= TARGET){ win(); return; }
+        }
+        continue;
+      }
+      if (it.y > H) items.splice(i, 1);
+    }
+    for (var k = stars.length - 1; k >= 0; k--){
+      var sp = stars[k];
+      sp.x += sp.vx; sp.y += sp.vy; sp.vy += 0.09; sp.life--;
+      if (sp.life <= 0) stars.splice(k, 1);
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+    scrim += (scrimTo - scrim) * 0.045;
+    if (scrim > 0.004){
+      ctx.fillStyle = "rgba(11,6,32," + scrim.toFixed(3) + ")";
+      ctx.fillRect(0, HUD, W, H - HUD);
+    }
+    if (state === "play" || state === "clearing"){
+      ctx.fillStyle = "rgba(106,63,176,0.85)";
+      ctx.fillRect(0, H - 2, W, 2);
+      items.forEach(function(it){ blitOutlined(it.bad ? CANDLE : GIFT, it.x, it.y); });
+      stars.forEach(function(sp){
+        ctx.fillStyle = sp.life > 9 ? "#F5D547" : "#F2F0E6";
+        ctx.fillRect(sp.x | 0, sp.y | 0, 1, 1);
+      });
+      if (state === "play") blitOutlined(PLAYER, px, H - 18);
+    }
+    if (state !== "win"){
+      ctx.fillStyle = "#0B0620"; ctx.fillRect(0, 0, W, HUD);
+      ctx.fillStyle = "#3A2270"; ctx.fillRect(0, HUD, W, 1);
+      blit(GIFT, 2, 1);
+      text(pad2(caught) + "/" + TARGET, 14, 4, "#5BD06A");
+      for (var l = 0; l < LIVES; l++)
+        blit(HEART, W - 8 - l * 9, 4, l < lives ? "#F24B6A" : "#43306A");
+    }
+  }
+
+  var paused = false;
+  document.addEventListener("visibilitychange", function(){ paused = document.hidden; });
+  (function loop(){
+    requestAnimationFrame(loop);
+    if (active){
+      if (!paused && state === "play") update();
+      draw();
+    }
+  })();
+
+  /* ============================================================
+     The bridge from act one. The cake scene announces its own
+     progress through #hint, so watch that rather than reaching
+     into its internals.
+  ============================================================ */
+  var revealed = false;
+  function offerGame(){
+    if (revealed) return;
+    revealed = true;
+    bridgeEl.hidden = false;
+    requestAnimationFrame(function(){ bridgeEl.classList.add("show"); });
+  }
+
+  var hintEl = document.getElementById("hint");
+  if (hintEl && window.MutationObserver){
+    var mo = new MutationObserver(function(){
+      if (/served/i.test(hintEl.textContent || "")) offerGame();
+    });
+    mo.observe(hintEl, { childList:true, characterData:true, subtree:true });
+  }
+  /* safety net, in case she never gets as far as cutting */
+  setTimeout(offerGame, 120000);
+
+  function enterGame(){
+    document.body.classList.add("ar-leaving");
+    bridgeEl.classList.remove("show");
+    setTimeout(function(){
+      document.body.classList.add("ar-mode");
+      document.body.classList.remove("ar-leaving");
+      bridgeEl.hidden = true;
+      actEl.hidden = false;
+      active = true;
+      window.scrollTo(0, 0);
+    }, reduce ? 0 : 460);
+  }
+  function exitGame(){
+    active = false;
+    if (state === "play") state = "title";
+    hideAll(); titleEl.hidden = false;
+    actEl.hidden = true;
+    document.body.classList.remove("ar-mode");
+    window.scrollTo(0, 0);
+    bridgeEl.hidden = false;
+    requestAnimationFrame(function(){ bridgeEl.classList.add("show"); });
+  }
+
+  document.getElementById("arBridgeBtn").addEventListener("click", enterGame);
+  document.getElementById("arBack").addEventListener("click", exitGame);
 
 })();
 </script>
